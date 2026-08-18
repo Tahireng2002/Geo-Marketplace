@@ -1,0 +1,75 @@
+
+{% extends "base.html" %}
+{% block title %}Return Requests{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1><i class="fas fa-undo-alt"></i> Return Requests</h1>
+    <p class="text-muted">Manage return requests for your products.</p>
+    <hr>
+
+    {% if returns %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Return #</th>
+                        <th>Order #</th>
+                        <th>Buyer</th>
+                        <th>Product</th>
+                        <th>Reason</th>
+                        <th>Status</th>
+                        <th>Submitted</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in returns %}
+                    <tr>
+                        <td>#{{ r.id }}</td>
+                        <td><a href="{{ url_for('orders.view_order', order_id=r.order.id) }}">#{{ r.order.id }}</a></td>
+                        <td>{{ r.buyer.full_name }}</td>
+                        <td>{{ r.order.product.name }}</td>
+                        <td>{{ r.reason.replace('_', ' ').capitalize() }}</td>
+                        <td>
+                            <span class="badge bg-{{ 
+                                'warning' if r.status == 'pending' else 
+                                'success' if r.status == 'approved' else 
+                                'danger' if r.status == 'rejected' else 
+                                'info'
+                            }}">
+                                {{ r.status.capitalize() }}
+                            </span>
+                        </td>
+                        <td>{{ r.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            {% if r.status == 'pending' %}
+                                <div class="d-flex gap-1">
+                                    <form method="POST" action="{{ url_for('returns.update_return_status', return_id=r.id, status='approved') }}">
+                                        <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('returns.update_return_status', return_id=r.id, status='rejected') }}">
+                                        <button type="submit" class="btn btn-sm btn-danger">Reject</button>
+                                    </form>
+                                </div>
+                            {% elif r.status == 'approved' %}
+                                <form method="POST" action="{{ url_for('returns.update_return_status', return_id=r.id, status='refunded') }}">
+                                    <button type="submit" class="btn btn-sm btn-info text-white">Mark Refunded</button>
+                                </form>
+                            {% else %}
+                                <span class="text-muted small">Completed</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+            <p>No return requests yet.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

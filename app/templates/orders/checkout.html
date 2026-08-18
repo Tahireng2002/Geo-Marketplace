@@ -1,0 +1,72 @@
+
+{% extends "base.html" %}
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="fas fa-shopping-cart"></i> Checkout</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3 p-3 bg-light rounded">
+                        <h5>{{ product.name }}</h5>
+                        <p class="text-muted">{{ product.description or 'No description' }}</p>
+                        <p class="fw-bold">Price: ${{ "%.2f"|format(product.price) }}</p>
+                        <p class="text-muted small">Stock: {{ product.stock_quantity }} available</p>
+                    </div>
+                    
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.quantity.label(class="form-label") }}
+                            {{ form.quantity(class="form-control", min=1, max=product.stock_quantity) }}
+                            <small class="text-muted">Max: {{ product.stock_quantity }}</small>
+                            {% for err in form.quantity.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.delivery_address.label(class="form-label") }}
+                            {{ form.delivery_address(class="form-control", rows=2) }}
+                            <small class="text-muted">Your current location will be used for delivery.</small>
+                            {% for err in form.delivery_address.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <strong>Total: ${{ "%.2f"|format(product.price * (form.quantity.data or 1)) }}</strong>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-check-circle"></i> Place Order
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="mt-3 text-center">
+                <a href="{{ url_for('products.view_product', product_id=product.id) }}" class="text-muted">
+                    <i class="fas fa-arrow-left"></i> Back to Product
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Update total when quantity changes
+document.addEventListener('DOMContentLoaded', function() {
+    const quantityInput = document.querySelector('input[name="quantity"]');
+    const totalAlert = document.querySelector('.alert-info strong');
+    const price = {{ product.price }};
+    
+    if (quantityInput) {
+        quantityInput.addEventListener('input', function() {
+            const qty = parseInt(this.value) || 0;
+            totalAlert.textContent = '$' + (price * qty).toFixed(2);
+        });
+    }
+});
+</script>
+{% endblock %}

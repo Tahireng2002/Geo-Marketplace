@@ -1,0 +1,57 @@
+
+{% extends "base.html" %}
+{% block title %}Return Status{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-{{ 
+                    'warning' if return_request.status == 'pending' else 
+                    'success' if return_request.status == 'approved' else 
+                    'danger' if return_request.status == 'rejected' else 
+                    'info'
+                }} text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-undo-alt"></i> Return #{{ return_request.id }}
+                        <span class="badge bg-light text-dark float-end">
+                            {{ return_request.status.capitalize() }}
+                        </span>
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p><strong>Order #:</strong> {{ return_request.order.id }}</p>
+                    <p><strong>Product:</strong> {{ return_request.order.product.name }}</p>
+                    <p><strong>Reason:</strong> {{ return_request.reason.replace('_', ' ').capitalize() }}</p>
+                    <p><strong>Description:</strong> {{ return_request.description or 'No description provided.' }}</p>
+                    <p><strong>Submitted:</strong> {{ return_request.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                    
+                    {% if return_request.status == 'pending' %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-hourglass-half"></i> Waiting for seller review.
+                        </div>
+                    {% elif return_request.status == 'approved' %}
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i> Return approved. Please ship the item back.
+                        </div>
+                    {% elif return_request.status == 'rejected' %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-times-circle"></i> Return rejected by seller.
+                        </div>
+                    {% elif return_request.status == 'refunded' %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-credit-card"></i> Refund processed successfully.
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('orders.buyer_history') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> My Orders
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

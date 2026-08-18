@@ -1,0 +1,105 @@
+
+ {% extends "base.html" %}
+{% block title %}Apply as Seller{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4><i class="fas fa-store"></i> Apply to become a Seller</h4>
+                </div>
+                <div class="card-body">
+                    <p>Fill in your business details. Admin will review and approve your application.</p>
+                    <form method="POST" enctype="multipart/form-data" id="applyForm">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.business_name.label(class="form-label") }}
+                            {{ form.business_name(class="form-control") }}
+                            {% for err in form.business_name.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.business_address.label(class="form-label") }}
+                            {{ form.business_address(class="form-control") }}
+                            {% for err in form.business_address.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.business_phone.label(class="form-label") }}
+                            {{ form.business_phone(class="form-control") }}
+                            {% for err in form.business_phone.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+                        </div>
+                        
+                        <hr>
+                        <h6><i class="fas fa-map-marker-alt"></i> Business Location</h6>
+                        
+                        <div class="mb-3">
+                            {{ form.location_source.label(class="form-label") }}
+                            {{ form.location_source(class="form-select", id="locationSource") }}
+                        </div>
+                        
+                        <div class="mb-3" id="gpsFields">
+                            <label class="form-label">GPS Location</label>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="getLocationBtn">
+                                <i class="fas fa-satellite"></i> Get My Location
+                            </button>
+                            <div class="mt-2">
+                                {{ form.latitude(class="form-control", placeholder="Latitude", id="latField") }}
+                                {{ form.longitude(class="form-control mt-1", placeholder="Longitude", id="lngField") }}
+                            </div>
+                            {% for err in form.latitude.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+                            {% for err in form.longitude.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+                        </div>
+                        
+                        <div class="mb-3" id="manualFields" style="display:none;">
+                            <small class="text-muted">Your business address will be used for location.</small>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success w-100 mt-3">Submit Application</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Toggle GPS/Manual fields
+    $('#locationSource').change(function() {
+        if ($(this).val() === 'gps') {
+            $('#gpsFields').show();
+            $('#manualFields').hide();
+        } else {
+            $('#gpsFields').hide();
+            $('#manualFields').show();
+        }
+    });
+
+    // Get GPS location
+    $('#getLocationBtn').click(function() {
+        if (navigator.geolocation) {
+            $(this).html('<i class="fas fa-spinner fa-spin"></i> Getting...');
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    $('#latField').val(position.coords.latitude);
+                    $('#lngField').val(position.coords.longitude);
+                    $('#getLocationBtn').html('<i class="fas fa-check-circle text-success"></i> Location Captured');
+                },
+                function(error) {
+                    alert('Unable to get location. Please enter manually or allow GPS.');
+                    $('#getLocationBtn').html('<i class="fas fa-satellite"></i> Get My Location');
+                }
+            );
+        } else {
+            alert('Geolocation not supported. Please use manual entry.');
+        }
+    });
+});
+</script>
+{% endblock %}

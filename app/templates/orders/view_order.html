@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Order #{{ order.id }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-file-invoice"></i> Order #{{ order.id }}</h4>
+                    <span class="badge bg-{{ 
+                        'warning' if order.status == 'pending' else 
+                        'info' if order.status == 'confirmed' else 
+                        'primary' if order.status == 'shipped' else 
+                        'success' if order.status == 'delivered' else 
+                        'danger'
+                    }} fs-6">
+                        {{ order.status.capitalize() }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Product Details</h5>
+                            <p><strong>Name:</strong> {{ order.product.name }}</p>
+                            <p><strong>Category:</strong> {{ order.product.category }}</p>
+                            <p><strong>Price:</strong> ${{ "%.2f"|format(order.product.price) }}</p>
+                            <p><strong>Quantity:</strong> {{ order.quantity }}</p>
+                            <p><strong>Total:</strong> <span class="fw-bold fs-5">${{ "%.2f"|format(order.total_price) }}</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Order Details</h5>
+                            <p><strong>Placed:</strong> {{ order.placed_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                            <p><strong>Last Updated:</strong> {{ order.updated_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                            <p><strong>Delivery Address:</strong> {{ order.delivery_address or 'Not specified' }}</p>
+                            <p><strong>Delivery Location:</strong> {{ order.delivery_lat }}, {{ order.delivery_lng }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Return Button Section -->
+                    {% if current_user.id == order.buyer_id and order.status == 'delivered' %}
+                        <hr>
+                        <div class="mt-3">
+                            {% set existing_return = order.return_requests|first %}
+                            {% if not existing_return %}
+                                <a href="{{ url_for('returns.request_return', order_id=order.id) }}" 
+                                   class="btn btn-warning">
+                                    <i class="fas fa-undo-alt"></i> Request Return
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('returns.track_return', return_id=existing_return.id) }}" 
+                                   class="btn btn-info">
+                                    <i class="fas fa-search"></i> Track Return
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer d-flex gap-2">
+                    <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-home"></i> Home
+                    </a>
+                    {% if current_user.id == order.buyer_id %}
+                        <a href="{{ url_for('orders.buyer_history') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-history"></i> My Orders
+                        </a>
+                    {% endif %}
+                    {% if current_user.id == order.seller_id %}
+                        <a href="{{ url_for('orders.seller_dashboard') }}" class="btn btn-outline-success">
+                            <i class="fas fa-truck"></i> Incoming Orders
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

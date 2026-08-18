@@ -1,0 +1,59 @@
+
+{% extends "base.html" %}
+{% block title %}Admin - Seller Applications{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1><i class="fas fa-user-check"></i> Seller Applications</h1>
+    <hr>
+
+    <h3>Pending Applications</h3>
+    {% if pending %}
+        {% for app in pending %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5>{{ app.business_name }}</h5>
+                <p><strong>Applicant:</strong> {{ app.applicant.full_name }} ({{ app.applicant.email }})</p>
+                <p><strong>Address:</strong> {{ app.business_address }}</p>
+                <p><strong>Phone:</strong> {{ app.business_phone or 'N/A' }}</p>
+                <p><strong>Location:</strong> {{ app.latitude }}, {{ app.longitude }}
+                    <span class="badge bg-secondary">{{ app.location_source }}</span>
+                </p> 
+                <p><strong>Applied:</strong> {{ app.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                <a href="{{ url_for('admin.approve_app', app_id=app.id) }}" class="btn btn-success btn-sm">Approve</a>
+                <button onclick="rejectApp({{ app.id }})" class="btn btn-danger btn-sm">Reject</button>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>No pending applications.</p>
+    {% endif %}
+
+    <hr>
+    <h3>Processed Applications</h3>
+    {% if processed %}
+        {% for app in processed %}
+        <div class="card mb-2">
+            <div class="card-body">
+                <strong>{{ app.business_name }}</strong> - 
+                <span class="badge bg-{{ 'success' if app.status == 'approved' else 'danger' }}">
+                    {{ app.status }}
+                </span>
+                <span class="text-muted small">({{ app.reviewed_at.strftime('%Y-%m-%d') }})</span>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>No processed applications.</p>
+    {% endif %}
+</div>
+
+<script>
+function rejectApp(appId) {
+    let reason = prompt("Enter reason for rejection:");
+    if (reason !== null) {
+        window.location.href = "/admin/reject/" + appId + "?reason=" + encodeURIComponent(reason);
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,58 @@
+
+{% extends "base.html" %}
+{% block title %}My Products{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-box"></i> My Products</h1>
+        <a href="{{ url_for('products.add_product') }}" class="btn btn-success">
+            <i class="fas fa-plus"></i> Add Product
+        </a>
+    </div>
+
+    {% if products %}
+        <div class="row">
+            {% for product in products %}
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <img src="{{ product.image_url or 'https://via.placeholder.com/300x200?text=No+Image' }}" 
+                         class="card-img-top" alt="{{ product.name }}" style="height:150px; object-fit:cover;">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <p class="card-text text-success fw-bold">${{ "%.2f"|format(product.price) }}</p>
+                        <p class="card-text small">
+                            <span class="badge bg-secondary">{{ product.category }}</span>
+                            Stock: {{ product.stock_quantity }}
+                            <span class="badge bg-{{ 'success' if product.is_active else 'danger' }}">
+                                {{ 'Active' if product.is_active else 'Inactive' }}
+                            </span>
+                        </p>
+                    </div>
+                    <div class="card-footer bg-white border-top-0 d-flex gap-2">
+                        <a href="{{ url_for('products.edit_product', product_id=product.id) }}" 
+                           class="btn btn-sm btn-outline-primary flex-grow-1">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <form method="POST" action="{{ url_for('products.delete_product', product_id=product.id) }}" 
+                              onsubmit="return confirm('Delete this product?');" class="flex-grow-1">
+                            <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+            <p>You haven't added any products yet.</p>
+            <a href="{{ url_for('products.add_product') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Your First Product
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

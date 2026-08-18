@@ -1,0 +1,170 @@
+
+{% extends "base.html" %}
+{% block title %}Admin - Monitor Orders{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-clipboard-list"></i> Order Monitoring</h1>
+        <div>
+            <a href="{{ url_for('admin.export_orders') }}" class="btn btn-success">
+                <i class="fas fa-file-csv"></i> Export CSV
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Total Orders</h5>
+                    <h2 class="mb-0">{{ stats.total }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h5 class="card-title">Pending</h5>
+                    <h2 class="mb-0">{{ stats.pending }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Delivered</h5>
+                    <h2 class="mb-0">{{ stats.delivered }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h5 class="card-title">Avg Distance</h5>
+                    <h2 class="mb-0">{{ stats.avg_distance }} km</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">All Statuses</option>
+                        {% for opt in status_options %}
+                            <option value="{{ opt }}" {% if status_filter == opt %}selected{% endif %}>
+                                {{ opt.capitalize() }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Seller</label>
+                    <select name="seller" class="form-select">
+                        <option value="">All Sellers</option>
+                        {% for seller in sellers %}
+                            <option value="{{ seller.id }}" {% if seller_filter|int == seller.id %}selected{% endif %}>
+                                {{ seller.full_name }} ({{ seller.email }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Date From</label>
+                    <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Date To</label>
+                    <input type="date" name="date_to" class="form-control" value="{{ date_to }}">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                    <a href="{{ url_for('admin.orders') }}" class="btn btn-outline-secondary w-100 ms-2">
+                        <i class="fas fa-times"></i> Clear
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped">
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Buyer</th>
+                            <th>Seller</th>
+                            <th>Product</th>
+                            <th>Qty</th>
+                            <th>Total</th>
+                            <th>Distance</th>
+                            <th>Status</th>
+                            <th>Placed</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if orders %}
+                            {% for order in orders %}
+                            <tr>
+                                <td><strong>#{{ order.id }}</strong></td>
+                                <td>{{ order.buyer.full_name if order.buyer else 'N/A' }}</td>
+                                <td>{{ order.seller.full_name if order.seller else 'N/A' }}</td>
+                                <td>{{ order.product.name if order.product else 'Deleted' }}</td>
+                                <td>{{ order.quantity }}</td>
+                                <td>${{ "%.2f"|format(order.total_price) }}</td>
+                                <td>
+                                    {% if order.delivery_distance is not none %}
+                                        <span class="badge bg-{{ 'success' if order.delivery_distance < 10 else 'warning' if order.delivery_distance < 50 else 'danger' }}">
+                                            {{ "%.1f"|format(order.delivery_distance) }} km
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ 
+                                        'warning' if order.status == 'pending' else 
+                                        'info' if order.status == 'confirmed' else 
+                                        'primary' if order.status == 'shipped' else 
+                                        'success' if order.status == 'delivered' else 
+                                        'danger'
+                                    }}">
+                                        {{ order.status.capitalize() }}
+                                    </span>
+                                </td>
+                                <td>{{ order.placed_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <a href="{{ url_for('admin.order_detail', order_id=order.id) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="10" class="text-center py-4">
+                                    <i class="fas fa-inbox fa-2x text-muted d-block mb-2"></i>
+                                    No orders found.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

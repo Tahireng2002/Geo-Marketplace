@@ -1,0 +1,115 @@
+
+{% extends "base.html" %}
+{% block title %}Order #{{ order.id }} - Admin View{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-file-invoice"></i> Order #{{ order.id }}</h4>
+                    <span class="badge bg-{{ 
+                        'warning' if order.status == 'pending' else 
+                        'info' if order.status == 'confirmed' else 
+                        'primary' if order.status == 'shipped' else 
+                        'success' if order.status == 'delivered' else 
+                        'danger'
+                    }} fs-6">
+                        {{ order.status.capitalize() }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <!-- Two columns: Order Details & Product Info -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-shopping-cart"></i> Order Details</h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th>Order ID:</th>
+                                    <td>#{{ order.id }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Placed:</th>
+                                    <td>{{ order.placed_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Last Updated:</th>
+                                    <td>{{ order.updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Quantity:</th>
+                                    <td>{{ order.quantity }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Total Price:</th>
+                                    <td><strong>${{ "%.2f"|format(order.total_price) }}</strong></td>
+                                </tr>
+                                <tr>
+                                    <th>Delivery Distance:</th>
+                                    <td>
+                                        {% if order.delivery_distance is not none %}
+                                            <span class="badge bg-{{ 'success' if order.delivery_distance < 10 else 'warning' if order.delivery_distance < 50 else 'danger' }}">
+                                                {{ "%.1f"|format(order.delivery_distance) }} km
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Delivery Address:</th>
+                                    <td>{{ order.delivery_address or 'Not specified' }}</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-box"></i> Product Details</h5>
+                            {% if order.product %}
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <th>Product:</th>
+                                        <td><a href="{{ url_for('products.view_product', product_id=order.product.id) }}">{{ order.product.name }}</a></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Category:</th>
+                                        <td>{{ order.product.category }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Price (unit):</th>
+                                        <td>${{ "%.2f"|format(order.product.price) }}</td>
+                                    </tr>
+                                </table>
+                            {% else %}
+                                <p class="text-muted">Product deleted or unavailable.</p>
+                            {% endif %}
+
+                            <h5><i class="fas fa-user"></i> Buyer</h5>
+                            <p>
+                                <strong>{{ order.buyer.full_name if order.buyer else 'Unknown' }}</strong><br>
+                                {{ order.buyer.email if order.buyer else 'Unknown' }}<br>
+                                <span class="text-muted small">Location: {{ order.delivery_lat }}, {{ order.delivery_lng }}</span>
+                            </p>
+
+                            <h5><i class="fas fa-store"></i> Seller</h5>
+                            <p>
+                                <strong>{{ order.seller.full_name if order.seller else 'Unknown' }}</strong><br>
+                                {{ order.seller.email if order.seller else 'Unknown' }}<br>
+                                {% if order.seller and order.seller.location %}
+                                    <span class="text-muted small">Location: {{ order.seller.location.latitude }}, {{ order.seller.location.longitude }}</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer d-flex gap-2">
+                    <a href="{{ url_for('admin.orders') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Orders
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

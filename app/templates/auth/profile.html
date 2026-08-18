@@ -1,0 +1,113 @@
+
+{% extends "base.html" %}
+{% block title %}Profile - GeoMarket{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="fas fa-user-cog"></i> Your Profile</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.full_name.label(class="form-label") }}
+                            {{ form.full_name(class="form-control") }}
+                            {% for err in form.full_name.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.address.label(class="form-label") }}
+                            {{ form.address(class="form-control") }}
+                            {% for err in form.address.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+                        </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">GPS Location</label>
+                        <button type="button" class="btn btn-outline-primary btn-sm" id="getLocationBtn">
+                        <i class="fas fa-satellite"></i> Get My Location
+                        </button>
+                        <div class="mt-2">
+                        {{ form.latitude(class="form-control", placeholder="Latitude", id="latitude") }}
+                        {{ form.longitude(class="form-control mt-1", placeholder="Longitude", id="longitude") }}
+                        </div>
+                    </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.latitude.label(class="form-label") }}
+                                {{ form.latitude(class="form-control") }}
+                                {% for err in form.latitude.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.longitude.label(class="form-label") }}
+                                {{ form.longitude(class="form-control") }}
+                                {% for err in form.longitude.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary mt-3">Update Profile</button>
+                    </form>
+                    
+                    <hr>
+                    <h5>Account Info</h5>
+                    <p><strong>Email:</strong> {{ user.email }}</p>
+                    <p><strong>Role:</strong> {{ user.role }}</p>
+                    <p><strong>Verified Seller:</strong> {{ 'Yes' if user.is_verified_seller else 'No' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+    $('#getLocationBtn').click(function() {
+        if (navigator.geolocation) {
+            $(this).html('<i class="fas fa-spinner fa-spin"></i> Getting location...');
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    
+                    $('#latitude').val(lat);
+                    $('#longitude').val(lng);
+                    
+                    // Reverse geocode
+                    $.getJSON('https://nominatim.openstreetmap.org/reverse', {
+                        lat: lat,
+                        lon: lng,
+                        format: 'json',
+                        addressdetails: 1
+                    })
+                    .done(function(data) {
+                        if (data && data.display_name) {
+                            $('#address').val(data.display_name);
+                            $('#getLocationBtn').html('<i class="fas fa-check-circle text-success"></i> Location Captured');
+                        } else {
+                            $('#getLocationBtn').html('<i class="fas fa-exclamation-triangle text-warning"></i> No address found');
+                        }
+                    })
+                    .fail(function() {
+                        $('#getLocationBtn').html('<i class="fas fa-exclamation-triangle text-danger"></i> Geocoding failed');
+                    });
+                },
+                function(error) {
+                    alert('Unable to get location. Please allow GPS or enter manually.');
+                    $('#getLocationBtn').html('<i class="fas fa-satellite"></i> Get My Location');
+                }
+            );
+        } else {
+            alert('Geolocation not supported. Please enter manually.');
+        }
+    });
+});
+</script>
+    
+{% endblock %}

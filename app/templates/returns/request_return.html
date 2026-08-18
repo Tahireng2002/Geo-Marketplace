@@ -1,0 +1,43 @@
+
+{% extends "base.html" %}
+{% block title %}Request Return{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-warning">
+                    <h4 class="mb-0"><i class="fas fa-undo-alt"></i> Request Return</h4>
+                </div>
+                <div class="card-body">
+                    <p><strong>Order #{{ order.id }}</strong></p>
+                    <p><strong>Product:</strong> {{ order.product.name }}</p>
+                    <p><strong>Total:</strong> ${{ "%.2f"|format(order.total_price) }}</p>
+                    <hr>
+                    
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.reason.label(class="form-label") }}
+                            {{ form.reason(class="form-select") }}
+                            {% for err in form.reason.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.description.label(class="form-label") }}
+                            {{ form.description(class="form-control", rows=4, placeholder="Describe the issue...") }}
+                            {% for err in form.description.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-paper-plane"></i> Submit Return Request
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
