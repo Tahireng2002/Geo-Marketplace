@@ -4,6 +4,9 @@ from datetime import timedelta
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
+# FORCE SQLITE FOR DEPLOYMENT
+os.environ['DATABASE_URL'] = f'sqlite:///{os.path.join(basedir, "marketplace.db")}'
+
 class Config:
     # Basic Flask config
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
